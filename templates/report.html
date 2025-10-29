@@ -21,6 +21,8 @@
     <table>
         <thead>
             <tr>
+                <th>Author</th>
+                <th>Domain</th>
                 <th>File Path</th>
                 <th>Provider</th>
                 <th>Token Type</th>
@@ -31,6 +33,8 @@
         <tbody>
             {{range .}}
             <tr>
+                <td>{{.Metadata.Author}}</td>
+                <td>{{.Metadata.Domain}}</td>
                 <td>{{.Path}}</td>
                 <td>{{.Token.Provider}}</td>
                 <td>{{.Token.TokenType}}</td>

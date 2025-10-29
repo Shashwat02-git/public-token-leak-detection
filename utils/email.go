@@ -47,6 +47,7 @@ func SendEmail(to string, subject string, leaks []Leak) error {
 	if err != nil {
 		return err
 	}
+	// Sending email through gmail smtp
 	smtpHost := "smtp.gmail.com"
 	smtpPort := "587"
 	sender := os.Getenv("SENDER")

@@ -22,12 +22,13 @@ func main() {
 		log.Fatalf("Failed to decode inventory file: %v", err)
 	}
 
-	// Read each file from the source_files directory
 	dirPath := "./source_files"
-	files := utils.GetFiles(dirPath)
 
 	// Check for token leaks in each file
-	leaks := utils.CheckForTokenLeaks(dirPath, files, tokens)
+	leaks, err := utils.CheckForTokenLeaks(dirPath, tokens)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	emailList := make(map[string][]utils.Leak)
 
@@ -40,4 +41,5 @@ func main() {
 	for owner, details := range emailList {
 		utils.SendEmail(owner, "WARNING: You have token leaks", details)
 	}
+	utils.SendSlackNotification(leaks)
 }
