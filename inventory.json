@@ -1,0 +1,20 @@
+[
+    {
+        "provider": "aws",
+        "token_type": "AWS Access Key ID",
+        "token_value": "AKIAJVW6QEXAMPLE7FHFQ",
+        "owner": "backend-team@example.com"
+    },
+    {
+        "provider": "github",
+        "token_type": "GitHub Personal Access Token",
+        "token_value": "ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890",
+        "owner": "jane.doe@example.com"
+    },
+    {
+        "provider": "gcp",
+        "token_type": "service account key",
+        "token_value": "E2C4F43C867C924D2FA9EE73468F8",
+        "owner": "john.doe@example.com"
+    }
+]
