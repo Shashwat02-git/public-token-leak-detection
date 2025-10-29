@@ -27,5 +27,17 @@ func main() {
 	files := utils.GetFiles(dirPath)
 
 	// Check for token leaks in each file
-	utils.CheckForTokenLeaks(dirPath, files, tokens)
+	leaks := utils.CheckForTokenLeaks(dirPath, files, tokens)
+
+	emailList := make(map[string][]utils.Leak)
+
+	for _, leak := range leaks {
+		ownerEmail := emailList[leak.Token.Owner]
+		ownerEmail = append(ownerEmail, leak)
+		emailList[leak.Token.Owner] = ownerEmail
+	}
+
+	for owner, details := range emailList {
+		utils.SendEmail(owner, "WARNING: You have token leaks", details)
+	}
 }

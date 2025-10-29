@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Token Leak Report</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; }
+        h1 { color: #333; }
+        table { width: 100%; border-collapse: collapse; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        thead { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .token-value { font-family: monospace; color: #d9534f; font-weight: bold; }
+        .no-leaks { padding: 20px; background-color: #e8f5e9; border-left: 5px solid #4CAF50; }
+    </style>
+</head>
+<body>
+    <h1>Security Scan: Token Leak Report</h1>
+    
+    {{if .}}
+    <table>
+        <thead>
+            <tr>
+                <th>File Path</th>
+                <th>Provider</th>
+                <th>Token Type</th>
+                <th>Owner</th>
+                <th>Exposed Token</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .}}
+            <tr>
+                <td>{{.Path}}</td>
+                <td>{{.Token.Provider}}</td>
+                <td>{{.Token.TokenType}}</td>
+                <td>{{.Token.Owner}}</td>
+                <td class="token-value">{{.Token.TokenValue}}</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    {{else}}
+    <div class="no-leaks">
+        <p>✅ No token leaks were found.</p>
+    </div>
+    {{end}}
+</body>
+</html>
