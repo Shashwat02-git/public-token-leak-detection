@@ -3,19 +3,10 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
-	"path/filepath"
-	"strings"
+	"public-leak-detection/utils"
 )
-
-type Token struct {
-	Provider   string `json:"provider"`
-	TokenType  string `json:"token_type"`
-	TokenValue string `json:"token_value"`
-	Owner      string `json:"owner"`
-}
 
 func main() {
 	// Read the contents of the inventory file and decode into a slice of structs of Token type
@@ -24,7 +15,7 @@ func main() {
 		log.Fatalf("Failed to read inventory file: %v", err)
 	}
 
-	var tokens []Token
+	var tokens []utils.Token
 
 	decoder := json.NewDecoder(bytes.NewReader(inventory))
 	if err := decoder.Decode(&tokens); err != nil {
@@ -33,22 +24,8 @@ func main() {
 
 	// Read each file from the source_files directory
 	dirPath := "./source_files"
-	files, err := os.ReadDir(dirPath)
-	if err != nil {
-		log.Fatalf("Failed to get directory path: %v", err)
-	}
+	files := utils.GetFiles(dirPath)
 
 	// Check for token leaks in each file
-	for _, file := range files {
-		fullPath := filepath.Join(dirPath, file.Name())
-		content, err := os.ReadFile(fullPath)
-		if err != nil {
-			log.Fatalf("Failed to read file: %v", err)
-		}
-		for _, token := range tokens {
-			if strings.Contains(string(content), token.TokenValue) {
-				fmt.Printf("Token leak found in file: %s\n", fullPath)
-			}
-		}
-	}
+	utils.CheckForTokenLeaks(dirPath, files, tokens)
 }
