@@ -26,7 +26,7 @@ func worker(wg *sync.WaitGroup, jobs <-chan EmailJob) {
 	}
 }
 
-func runFullScan() {
+func runFullScan(w http.ResponseWriter) {
 	start := time.Now()
 	// Read the contents of the inventory file and decode into a slice of structs of Token type
 	inventory, err := os.ReadFile("inventory.json")
@@ -81,6 +81,7 @@ func runFullScan() {
 
 	duration := time.Since(start)
 	fmt.Printf("Time Taken: %s\n", duration)
+	fmt.Fprintf(w, "Time Taken: %s\n", duration)
 }
 
 func main() {
@@ -90,7 +91,7 @@ func main() {
 
 	http.HandleFunc("/api/check", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Scan started")
-		runFullScan()
+		runFullScan(w)
 	})
 
 	_ = godotenv.Load()
