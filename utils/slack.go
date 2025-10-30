@@ -26,10 +26,7 @@ type TextObject struct {
 }
 
 func SendSlackNotification(leaks []Leak) error {
-	err := godotenv.Load()
-	if err != nil {
-		return err
-	}
+	_ = godotenv.Load()
 
 	webhookURL := os.Getenv("SLACK_WEBHOOK_URL")
 
@@ -58,7 +55,7 @@ func SendSlackNotification(leaks []Leak) error {
 			}
 
 			leakText := fmt.Sprintf(
-				"*Author:* %s\n*Domain:* %s\n*File:* `%s`\n*Location:* %s\n*Token Owner:* %s\n*Exposed Token:* `%s`\n*Remediation: *%s\nGeoLoaction data fetched from ip-api.com for each leak found",
+				"*Author:* %s\n*Domain:* %s\n*File:* `%s`\n*Location:* %s\n*Token Owner:* %s\n*Exposed Token:* `%s`\n*Remediation:*%s\n*GeoLoaction data* fetched from ip-api.com for each leak found",
 				leak.Metadata.Author,
 				leak.Metadata.Domain,
 				leak.Path,

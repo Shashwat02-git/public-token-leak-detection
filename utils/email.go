@@ -43,10 +43,8 @@ func GenerateHTMLReport(leaks []Leak) (string, error) {
 }
 
 func SendEmail(to string, subject string, leaks []Leak) error {
-	err := godotenv.Load()
-	if err != nil {
-		return err
-	}
+	_ = godotenv.Load()
+
 	// Sending email through gmail smtp
 	smtpHost := "smtp.gmail.com"
 	smtpPort := "587"
