@@ -1,0 +1,5 @@
+token-scanner
+public-leak-detection
+.env
+*.log
+.vscode/
