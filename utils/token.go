@@ -100,6 +100,7 @@ func CollectFileJobs(rootDir string) ([]FileJob, error) {
 	return jobs, nil
 }
 
+// If the numebr of tokens is less than number of workers, do parallel search for all tokens
 func checkTokensSimple(content []byte, tokens []Token) []Token {
 	var wg sync.WaitGroup
 	matches := make(chan Token, len(tokens))

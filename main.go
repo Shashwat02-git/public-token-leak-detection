@@ -7,8 +7,21 @@ import (
 	"log"
 	"os"
 	"public-leak-detection/utils"
+	"sync"
 	"time"
 )
+
+type EmailJob struct {
+	Owner string
+	Leak  []utils.Leak
+}
+
+func worker(wg *sync.WaitGroup, jobs <-chan EmailJob) {
+	defer wg.Done()
+	for job := range jobs {
+		utils.SendEmail(job.Owner, "WARNING: You have token leaks", job.Leak)
+	}
+}
 
 func main() {
 	start := time.Now()
@@ -34,17 +47,34 @@ func main() {
 	}
 
 	emailList := make(map[string][]utils.Leak)
-
 	for _, leak := range leaks {
 		ownerEmail := emailList[leak.Token.Owner]
 		ownerEmail = append(ownerEmail, leak)
 		emailList[leak.Token.Owner] = ownerEmail
 	}
+	var wg sync.WaitGroup
 
-	for owner, details := range emailList {
-		utils.SendEmail(owner, "WARNING: You have token leaks", details)
+	// Create worker pool to send emails
+	const numWorkers = 5
+	jobsChan := make(chan EmailJob, len(emailList))
+	for owner, job := range emailList {
+		jobsChan <- EmailJob{Owner: owner, Leak: job}
 	}
-	utils.SendSlackNotification(leaks)
+	close(jobsChan)
+
+	wg.Add(numWorkers)
+	for w := 1; w <= numWorkers; w++ {
+		go worker(&wg, jobsChan)
+	}
+
+	// Send notification to slack
+	wg.Add(1)
+	go func(l []utils.Leak) {
+		utils.SendSlackNotification(l)
+		defer wg.Done()
+	}(leaks)
+
+	wg.Wait()
 	duration := time.Since(start)
 	fmt.Printf("%s\n", duration)
 }
