@@ -165,12 +165,12 @@ http://localhost:8080/api/check
 ### 🐳 Running with Docker
 - Build the docker image:
 ```
-docker build -t stackguard-scanner .
+docker build -t token-scanner .
 ```
 
 - Run the docker container:
 ```
-docker run --env-file .env -p 8080:8080 stackguard-scanner
+docker run --env-file .env -p 8080:8080 token-scanner
 
 ```
 
