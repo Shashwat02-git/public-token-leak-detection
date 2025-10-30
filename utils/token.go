@@ -100,38 +100,90 @@ func CollectFileJobs(rootDir string) ([]FileJob, error) {
 	return jobs, nil
 }
 
+func checkTokensSimple(content []byte, tokens []Token) []Token {
+	var wg sync.WaitGroup
+	matches := make(chan Token, len(tokens))
+
+	for _, token := range tokens {
+		wg.Add(1)
+		go func(t Token) {
+			defer wg.Done()
+			if strings.Contains(string(content), t.TokenValue) {
+				matches <- t
+			}
+		}(token)
+	}
+
+	go func() {
+		wg.Wait()
+		close(matches)
+	}()
+
+	var result []Token
+	for token := range matches {
+		result = append(result, token)
+	}
+
+	return result
+}
+
+// Check tokens with worker pool to prevent goroutine explosion
+func checkTokens(content []byte, tokens []Token, numWorkers int) []Token {
+	if len(tokens) == 0 {
+		return nil
+	}
+
+	//Check all tokens in parallel if less than number of workers
+	if len(tokens) <= numWorkers {
+		return checkTokensSimple(content, tokens)
+	}
+
+	tokenChan := make(chan Token, len(tokens))
+	resultChan := make(chan Token, len(tokens))
+
+	for _, token := range tokens {
+		tokenChan <- token
+	}
+	close(tokenChan)
+
+	var wg sync.WaitGroup
+	for i := 0; i < numWorkers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for token := range tokenChan {
+				if strings.Contains(string(content), token.TokenValue) {
+					resultChan <- token
+				}
+			}
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(resultChan)
+	}()
+
+	var matches []Token
+	for token := range resultChan {
+		matches = append(matches, token)
+	}
+
+	return matches
+}
+
 // Checks for tokens in the files from the jobs channel, uses a cache for location
 func FileProcessingWorker(jobs <-chan FileJob, results chan<- ProcessResult, tokens []Token, wg *sync.WaitGroup, geoCache *sync.Map) {
 	defer wg.Done()
 
+	const numTokenWorkers = 20
+
 	var leaks []Leak
 	for job := range jobs {
-		var tokenWg sync.WaitGroup
-		matchedTokens := make(chan Token, len(tokens))
-
-		// Start separate goroutines for each token
-		for _, token := range tokens {
-			tokenWg.Add(1)
-			go func(t Token) {
-				defer tokenWg.Done()
-				if strings.Contains(string(job.Content), t.TokenValue) {
-					matchedTokens <- t
-				}
-			}(token)
-		}
-
-		go func() {
-			tokenWg.Wait()
-			close(matchedTokens)
-		}()
-
-		var matches []Token
-		for token := range matchedTokens {
-			matches = append(matches, token)
-		}
+		tokenMatches := checkTokens(job.Content, tokens, numTokenWorkers)
 
 		//GeoLocation enrichment from cache
-		for _, token := range matches {
+		for _, token := range tokenMatches {
 			location := getCachedLocation(job.Metadata.AuthorIP, geoCache)
 			newLeak := Leak{
 				Path:     job.Path,

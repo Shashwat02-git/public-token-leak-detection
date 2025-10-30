@@ -1,2 +1,4 @@
+github.com/glkz/rabinkarp v0.0.0-20150916193616-79fb77d74a0b h1:KSMUPdTKaQD/4NLLt6h6OxfRuo7/LCr7hiCk7Eqs++Q=
+github.com/glkz/rabinkarp v0.0.0-20150916193616-79fb77d74a0b/go.mod h1:DS/NcaXfmDBpEx7V9v0z2YC7OyIR0A7W9XbJD163iCI=
 github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
 github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
