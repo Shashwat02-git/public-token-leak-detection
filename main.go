@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"public-leak-detection/utils"
 	"sync"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 type EmailJob struct {
@@ -23,7 +26,7 @@ func worker(wg *sync.WaitGroup, jobs <-chan EmailJob) {
 	}
 }
 
-func main() {
+func runFullScan() {
 	start := time.Now()
 	// Read the contents of the inventory file and decode into a slice of structs of Token type
 	inventory, err := os.ReadFile("inventory.json")
@@ -75,6 +78,27 @@ func main() {
 	}(leaks)
 
 	wg.Wait()
+
 	duration := time.Since(start)
-	fmt.Printf("%s\n", duration)
+	fmt.Printf("Time Taken: %s\n", duration)
+}
+
+func main() {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, "Token Leak Detection Service Is Running!")
+	})
+
+	http.HandleFunc("/api/check", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Scan started")
+		runFullScan()
+	})
+
+	_ = godotenv.Load()
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("Detection system server starting on port %s", port)
 }
