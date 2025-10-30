@@ -34,7 +34,7 @@ func SendSlackNotification(leaks []Leak) error {
 	webhookURL := os.Getenv("SLACK_WEBHOOK_URL")
 
 	var message SlackMessage
-	headerText := ":warning: *Security Scan: Token Leak Report* :warning:"
+	headerText := "*Security Scan: Token Leak Report*"
 	message.Blocks = append(message.Blocks, Block{
 		Type: "header",
 		Text: &TextObject{Type: "plain_text", Text: "Token Leak Report"},
@@ -58,13 +58,14 @@ func SendSlackNotification(leaks []Leak) error {
 			}
 
 			leakText := fmt.Sprintf(
-				"*Author:* %s\n*Domain:* %s\n*File:* `%s`\n*Location:* %s\n*Token Owner:* %s\n*Exposed Token:* `%s`\nGeoLoaction data fetched from ip-api.com for each leak found",
+				"*Author:* %s\n*Domain:* %s\n*File:* `%s`\n*Location:* %s\n*Token Owner:* %s\n*Exposed Token:* `%s`\n*Remediation: *%s\nGeoLoaction data fetched from ip-api.com for each leak found",
 				leak.Metadata.Author,
 				leak.Metadata.Domain,
 				leak.Path,
 				leak.Location,
 				leak.Token.Owner,
 				token,
+				leak.Token.Remediation,
 			)
 
 			message.Blocks = append(message.Blocks, Block{

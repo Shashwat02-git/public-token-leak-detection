@@ -22,7 +22,7 @@ type EmailJob struct {
 func worker(wg *sync.WaitGroup, jobs <-chan EmailJob) {
 	defer wg.Done()
 	for job := range jobs {
-		utils.SendEmail(job.Owner, "WARNING: You have token leaks", job.Leak)
+		utils.SendEmail(job.Owner, "Token Leak Report", job.Leak)
 	}
 }
 

@@ -11,10 +11,11 @@ import (
 )
 
 type Token struct {
-	Provider   string `json:"provider"`
-	TokenType  string `json:"token_type"`
-	TokenValue string `json:"token_value"`
-	Owner      string `json:"owner"`
+	Provider    string `json:"provider"`
+	TokenType   string `json:"token_type"`
+	TokenValue  string `json:"token_value"`
+	Owner       string `json:"owner"`
+	Remediation string `json:"remediation"`
 }
 
 type Metadata struct {

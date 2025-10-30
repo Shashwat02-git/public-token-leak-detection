@@ -2,55 +2,127 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Token Leak Report</title>
     <style>
-        body { font-family: sans-serif; margin: 2em; }
-        h1 { color: #333; }
-        table { width: 100%; border-collapse: collapse; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        thead { background-color: #f2f2f2; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        .token-value { font-family: monospace; color: #d9534f; font-weight: bold; }
-        .no-leaks { padding: 20px; background-color: #e8f5e9; border-left: 5px solid #4CAF50; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        .header {
+            background-color: #d9534f;
+            color: #ffffff;
+            padding: 20px 30px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .leak-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        .leak-item {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 20px;
+            background-color: #fff;
+        }
+        .leak-item strong {
+            color: #555;
+            width: 100px;
+            display: inline-block;
+        }
+        .leak-item code {
+            background-color: #f4f4f4;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .token-value {
+            font-family: monospace;
+            color: #d9534f;
+            font-weight: bold;
+        }
+        .remediation-step {
+            margin-top: 12px;
+            padding: 12px;
+            background-color: #fffaf0;
+            border: 1px solid #ffe6b8;
+            border-radius: 4px;
+            color: #5c3c00;
+        }
+        .remediation-step strong {
+            color: #d9534f; 
+            width: auto;
+        }
+        .no-leaks {
+            padding: 20px;
+            background-color: #e8f5e9;
+            border-left: 5px solid #4CAF50;
+            color: #388e3c;
+            font-size: 16px;
+        }
+        .footer {
+            padding: 20px 30px;
+            font-size: 12px;
+            color: #888;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <h1>Security Scan: Token Leak Report</h1>
-    
-    {{if .}}
-    <table>
-        <thead>
-            <tr>
-                <th>Author</th>
-                <th>Domain</th>
-                <th>File Path</th>
-                <th>Location</th>
-                <th>Provider</th>
-                <th>Token Type</th>
-                <th>Owner</th>
-                <th>Exposed Token</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{range .}}
-            <tr>
-                <td>{{.Metadata.Author}}</td>
-                <td>{{.Metadata.Domain}}</td>
-                <td>{{.Path}}</td>
-                <td>{{.Location}}</td>
-                <td>{{.Token.Provider}}</td>
-                <td>{{.Token.TokenType}}</td>
-                <td>{{.Token.Owner}}</td>
-                <td class="token-value">{{.Token.TokenValue}}</td>
-            </tr>
+    <div class="container">
+        <div class="header">
+            <h1>Security Scan: Token Leak Report</h1>
+        </div>
+        
+        <div class="content">
+            {{if .}}
+            <p>One or more potential token leaks have been detected. Please review and take action immediately.</p>
+            <ul class="leak-list">
+                {{range .}}
+                <li class="leak-item">
+                    <strong>File Path:</strong> <code>{{.Path}}</code><br>
+                    <strong>Token:</strong> <span class="token-value">{{.Token.TokenValue}}</span><br>
+                    <strong>Provider:</strong> {{.Token.Provider}} ({{.Token.TokenType}})<br>
+                    <strong>Owner:</strong> {{.Token.Owner}}<br>
+                    <strong>Author:</strong> {{.Metadata.Author}} ({{.Metadata.Domain}})<br>
+                    <strong>Location:</strong> {{.Location}}<br>
+                    
+                    <div class="remediation-step">
+                        <strong>Remediation:</strong> {{.Token.Remediation}}
+                    </div>
+                </li>
+                {{end}}
+            </ul>
+            {{else}}
+            <div class="no-leaks">
+                <p><strong>No token leaks were found.</strong></p>
+                <p>Great job on keeping secrets secure!</p>
+            </div>
             {{end}}
-        </tbody>
-    </table>
-    <p><em>Method used to find location: </em>GeoLoaction data fetched from <a href="ip-api.com">ip-api.com</a> for each leak found</p>
-    {{else}}
-    <div class="no-leaks">
-        <p>✅ No token leaks were found.</p>
+        </div>
+
+        <div class="footer">
+            <p><em>Geolocation data fetched from ip-api.com.</em></p>
+        </div>
     </div>
-    {{end}}
 </body>
 </html>
