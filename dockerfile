@@ -7,13 +7,13 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o /token-scanner .
+RUN CGO_ENABLED=0 GOOS=linux go build -o ./token-scanner .
 
 FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=builder /token-scanner .
+COPY --from=builder /app/token-scanner .
 
 COPY inventory.json .
 COPY templates/ ./templates/
