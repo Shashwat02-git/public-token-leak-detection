@@ -86,11 +86,11 @@ func runFullScan(w http.ResponseWriter) {
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "Token Leak Detection Service Is Running!")
+		fmt.Fprint(w, "Token Leak Detection Service Is Running!\n")
 	})
 
 	http.HandleFunc("/api/check", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Scan started")
+		fmt.Fprintf(w, "Scan started\n")
 		runFullScan(w)
 	})
 
