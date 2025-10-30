@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 type Token struct {
@@ -29,8 +30,21 @@ type Leak struct {
 	Location string
 }
 
-func CheckForTokenLeaks(rootDir string, tokens []Token) ([]Leak, error) {
-	var leaks []Leak
+type FileJob struct {
+	Path     string
+	Content  []byte
+	Metadata Metadata
+}
+
+type ProcessResult struct {
+	Leaks []Leak
+	Err   error
+}
+
+// Creates jobs from files
+func CollectFileJobs(rootDir string) ([]FileJob, error) {
+	var jobs []FileJob
+	metadataCache := make(map[string]Metadata)
 
 	projectFolders, err := os.ReadDir(rootDir)
 	if err != nil {
@@ -44,19 +58,19 @@ func CheckForTokenLeaks(rootDir string, tokens []Token) ([]Leak, error) {
 
 		projectPath := filepath.Join(rootDir, dir.Name())
 		metadataPath := filepath.Join(projectPath, "metadata.json")
-		metaContent, err := os.ReadFile(metadataPath)
 
+		metaContent, err := os.ReadFile(metadataPath)
 		if err != nil {
 			return nil, err
 		}
 
 		var metadata Metadata
 		decoder := json.NewDecoder(bytes.NewReader(metaContent))
-		err = decoder.Decode(&metadata)
-
-		if err != nil {
+		if err := decoder.Decode(&metadata); err != nil {
 			return nil, err
 		}
+
+		metadataCache[projectPath] = metadata
 
 		files, err := os.ReadDir(projectPath)
 		if err != nil {
@@ -75,24 +89,121 @@ func CheckForTokenLeaks(rootDir string, tokens []Token) ([]Leak, error) {
 				continue
 			}
 
-			for _, token := range tokens {
-				if strings.Contains(string(content), token.TokenValue) {
-					location, err := GetGeoLocationFromIP(metadata.AuthorIP)
-					if err != nil && location == "" {
-						location = "Location not available"
-					}
-
-					newLeak := Leak{
-						Path:     fullPath,
-						Token:    token,
-						Metadata: metadata,
-						Location: location,
-					}
-					leaks = append(leaks, newLeak)
-				}
-			}
+			jobs = append(jobs, FileJob{
+				Path:     fullPath,
+				Content:  content,
+				Metadata: metadata,
+			})
 		}
 	}
 
-	return leaks, nil
+	return jobs, nil
+}
+
+// Checks for tokens in the files from the jobs channel, uses a cache for location
+func FileProcessingWorker(jobs <-chan FileJob, results chan<- ProcessResult, tokens []Token, wg *sync.WaitGroup, geoCache *sync.Map) {
+	defer wg.Done()
+
+	var leaks []Leak
+	for job := range jobs {
+		var tokenWg sync.WaitGroup
+		matchedTokens := make(chan Token, len(tokens))
+
+		// Start separate goroutines for each token
+		for _, token := range tokens {
+			tokenWg.Add(1)
+			go func(t Token) {
+				defer tokenWg.Done()
+				if strings.Contains(string(job.Content), t.TokenValue) {
+					matchedTokens <- t
+				}
+			}(token)
+		}
+
+		go func() {
+			tokenWg.Wait()
+			close(matchedTokens)
+		}()
+
+		var matches []Token
+		for token := range matchedTokens {
+			matches = append(matches, token)
+		}
+
+		//GeoLocation enrichment from cache
+		for _, token := range matches {
+			location := getCachedLocation(job.Metadata.AuthorIP, geoCache)
+			newLeak := Leak{
+				Path:     job.Path,
+				Token:    token,
+				Metadata: job.Metadata,
+				Location: location,
+			}
+			leaks = append(leaks, newLeak)
+		}
+	}
+
+	results <- ProcessResult{Leaks: leaks}
+}
+
+// Returns location from cache, if not found, fetches it from ip-api.com
+func getCachedLocation(ip string, cache *sync.Map) string {
+	if cached, ok := cache.Load(ip); ok {
+		return cached.(string)
+	}
+
+	location, err := GetGeoLocationFromIP(ip)
+	if err != nil || location == "" {
+		location = "Location not available"
+	}
+
+	cache.Store(ip, location)
+	return location
+}
+
+func CheckForTokenLeaks(rootDir string, tokens []Token) ([]Leak, error) {
+	jobs, err := CollectFileJobs(rootDir)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(jobs) == 0 {
+		return []Leak{}, nil
+	}
+
+	numWorkers := 10
+	if len(jobs) < numWorkers {
+		numWorkers = len(jobs)
+	}
+
+	jobsChan := make(chan FileJob, len(jobs))
+	resultsChan := make(chan ProcessResult, numWorkers)
+
+	for _, job := range jobs {
+		jobsChan <- job
+	}
+	close(jobsChan)
+
+	geoCache := sync.Map{}
+
+	var wg sync.WaitGroup
+	for i := 0; i < numWorkers; i++ {
+		wg.Add(1)
+		go FileProcessingWorker(jobsChan, resultsChan, tokens, &wg, &geoCache)
+	}
+
+	go func() {
+		wg.Wait()
+		close(resultsChan)
+	}()
+
+	var allLeaks []Leak
+	for result := range resultsChan {
+		if result.Err != nil {
+			return nil, result.Err
+		}
+		allLeaks = append(allLeaks, result.Leaks...)
+	}
+
+	return allLeaks, nil
 }
