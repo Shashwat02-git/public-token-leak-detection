@@ -26,9 +26,6 @@ func GenerateHTMLReport(leaks []Leak) (string, error) {
 	// Parse the HTML template file
 	tmpl, err := template.ParseFiles("./templates/report.html")
 	if err != nil {
-		// --- ADDED FOR DEBUGGING ---
-		log.Printf("Email Error: Failed to parse HTML template: %v", err)
-		// --- END DEBUGGING ---
 		return "", fmt.Errorf("error parsing template: %w", err)
 	}
 
@@ -38,9 +35,6 @@ func GenerateHTMLReport(leaks []Leak) (string, error) {
 	// Execute the template and write the output to the buffer
 	err = tmpl.Execute(&body, renderData)
 	if err != nil {
-		// --- ADDED FOR DEBUGGING ---
-		log.Printf("Email Error: Failed to execute HTML template: %v", err)
-		// --- END DEBUGGING ---
 		return "", fmt.Errorf("error executing template: %w", err)
 	}
 
@@ -58,20 +52,6 @@ func SendEmail(to string, subject string, leaks []Leak) error {
 	sender := os.Getenv("SENDER")
 	password := os.Getenv("PASSWORD")
 
-	// --- ADDED FOR DEBUGGING ---
-	// Log the sender email to confirm it's loaded. (DO NOT log the password)
-	if sender == "" {
-		log.Println("Email Error: SENDER environment variable is not set.")
-	} else {
-		log.Printf("Attempting to send email as: %s", sender)
-	}
-	if password == "" {
-		log.Println("Email Error: PASSWORD environment variable is not set.")
-	} else {
-		log.Println("Email Info: PASSWORD environment variable is set (not logging value).")
-	}
-	// --- END DEBUGGING ---
-
 	recipient := to
 	auth := smtp.PlainAuth("", sender, password, smtpHost)
 
@@ -83,7 +63,7 @@ func SendEmail(to string, subject string, leaks []Leak) error {
 
 	body, err := GenerateHTMLReport(leaks)
 	if err != nil {
-		return err // Error is already logged in GenerateHTMLReport
+		return err
 	}
 
 	var message []byte
@@ -98,11 +78,8 @@ func SendEmail(to string, subject string, leaks []Leak) error {
 	)
 
 	if err != nil {
-		// --- MODIFIED FOR DEBUGGING ---
-		// Print the specific SMTP error to the logs
-		log.Printf("Email Error: Failed to send email: %v", err)
+
 		return err
-		// --- END DEBUGGING ---
 	}
 
 	log.Printf("Email sent successfully to %s!", to)
