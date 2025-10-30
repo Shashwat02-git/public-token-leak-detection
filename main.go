@@ -3,12 +3,15 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"public-leak-detection/utils"
+	"time"
 )
 
 func main() {
+	start := time.Now()
 	// Read the contents of the inventory file and decode into a slice of structs of Token type
 	inventory, err := os.ReadFile("inventory.json")
 	if err != nil {
@@ -42,4 +45,6 @@ func main() {
 		utils.SendEmail(owner, "WARNING: You have token leaks", details)
 	}
 	utils.SendSlackNotification(leaks)
+	duration := time.Since(start)
+	fmt.Printf("%s\n", duration)
 }

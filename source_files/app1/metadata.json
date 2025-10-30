@@ -1,4 +1,5 @@
 {
     "author" : "abcd",
-    "domain" : "app1.com"
+    "domain" : "app1.com",
+    "authorIP": "8.8.8.8"
 }

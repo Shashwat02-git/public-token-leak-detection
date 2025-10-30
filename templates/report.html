@@ -24,6 +24,7 @@
                 <th>Author</th>
                 <th>Domain</th>
                 <th>File Path</th>
+                <th>Location</th>
                 <th>Provider</th>
                 <th>Token Type</th>
                 <th>Owner</th>
@@ -36,6 +37,7 @@
                 <td>{{.Metadata.Author}}</td>
                 <td>{{.Metadata.Domain}}</td>
                 <td>{{.Path}}</td>
+                <td>{{.Location}}</td>
                 <td>{{.Token.Provider}}</td>
                 <td>{{.Token.TokenType}}</td>
                 <td>{{.Token.Owner}}</td>
@@ -44,6 +46,7 @@
             {{end}}
         </tbody>
     </table>
+    <p><em>Method used to find location: </em>GeoLoaction data fetched from <a href="ip-api.com">ip-api.com</a> for each leak found</p>
     {{else}}
     <div class="no-leaks">
         <p>✅ No token leaks were found.</p>

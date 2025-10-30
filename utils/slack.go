@@ -58,10 +58,11 @@ func SendSlackNotification(leaks []Leak) error {
 			}
 
 			leakText := fmt.Sprintf(
-				"*Author:* %s\n*Domain:* %s\n*File:* `%s`\n*Token Owner:* %s\n*Exposed Token:* `%s`",
+				"*Author:* %s\n*Domain:* %s\n*File:* `%s`\n*Location:* %s\n*Token Owner:* %s\n*Exposed Token:* `%s`\nGeoLoaction data fetched from ip-api.com for each leak found",
 				leak.Metadata.Author,
 				leak.Metadata.Domain,
 				leak.Path,
+				leak.Location,
 				leak.Token.Owner,
 				token,
 			)

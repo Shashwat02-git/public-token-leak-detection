@@ -17,14 +17,16 @@ type Token struct {
 }
 
 type Metadata struct {
-	Author string `json:"author"`
-	Domain string `json:"domain"`
+	Author   string `json:"author"`
+	Domain   string `json:"domain"`
+	AuthorIP string `json:"authorIP"`
 }
 
 type Leak struct {
 	Path     string
 	Token    Token
 	Metadata Metadata
+	Location string
 }
 
 func CheckForTokenLeaks(rootDir string, tokens []Token) ([]Leak, error) {
@@ -75,10 +77,16 @@ func CheckForTokenLeaks(rootDir string, tokens []Token) ([]Leak, error) {
 
 			for _, token := range tokens {
 				if strings.Contains(string(content), token.TokenValue) {
+					location, err := GetGeoLocationFromIP(metadata.AuthorIP)
+					if err != nil && location == "" {
+						location = "Location not available"
+					}
+
 					newLeak := Leak{
 						Path:     fullPath,
 						Token:    token,
 						Metadata: metadata,
+						Location: location,
 					}
 					leaks = append(leaks, newLeak)
 				}
