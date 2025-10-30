@@ -101,4 +101,8 @@ func main() {
 	}
 
 	log.Printf("Detection system server starting on port %s", port)
+	err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
