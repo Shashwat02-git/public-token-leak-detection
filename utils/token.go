@@ -6,8 +6,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
+
+	"github.com/glkz/rabinkarp"
 )
 
 type Token struct {
@@ -100,31 +101,30 @@ func CollectFileJobs(rootDir string) ([]FileJob, error) {
 	return jobs, nil
 }
 
+func checkTokensRabinKarp(content []byte, tokens []Token) []Token {
+	if len(tokens) == 0 {
+		return nil
+	}
+
+	tokenValues := make([]string, len(tokens))
+	tokenMap := make(map[string]Token)
+
+	for i, token := range tokens {
+		tokenValues[i] = token.TokenValue
+		tokenMap[token.TokenValue] = token
+	}
+
+	found := rabinkarp.Search(string(content), tokenValues)
+
+	matches := make([]Token, 0, len(found))
+	for _, tokenValue := range found {
+		matches = append(matches, tokenMap[tokenValue])
+	}
+
+	return matches
+}
 func checkTokensSimple(content []byte, tokens []Token) []Token {
-	var wg sync.WaitGroup
-	matches := make(chan Token, len(tokens))
-
-	for _, token := range tokens {
-		wg.Add(1)
-		go func(t Token) {
-			defer wg.Done()
-			if strings.Contains(string(content), t.TokenValue) {
-				matches <- t
-			}
-		}(token)
-	}
-
-	go func() {
-		wg.Wait()
-		close(matches)
-	}()
-
-	var result []Token
-	for token := range matches {
-		result = append(result, token)
-	}
-
-	return result
+	return checkTokensRabinKarp(content, tokens)
 }
 
 // Check tokens with worker pool to prevent goroutine explosion
@@ -133,43 +133,7 @@ func checkTokens(content []byte, tokens []Token, numWorkers int) []Token {
 		return nil
 	}
 
-	//Check all tokens in parallel if less than number of workers
-	if len(tokens) <= numWorkers {
-		return checkTokensSimple(content, tokens)
-	}
-
-	tokenChan := make(chan Token, len(tokens))
-	resultChan := make(chan Token, len(tokens))
-
-	for _, token := range tokens {
-		tokenChan <- token
-	}
-	close(tokenChan)
-
-	var wg sync.WaitGroup
-	for i := 0; i < numWorkers; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for token := range tokenChan {
-				if strings.Contains(string(content), token.TokenValue) {
-					resultChan <- token
-				}
-			}
-		}()
-	}
-
-	go func() {
-		wg.Wait()
-		close(resultChan)
-	}()
-
-	var matches []Token
-	for token := range resultChan {
-		matches = append(matches, token)
-	}
-
-	return matches
+	return checkTokensRabinKarp(content, tokens)
 }
 
 // Checks for tokens in the files from the jobs channel, uses a cache for location
