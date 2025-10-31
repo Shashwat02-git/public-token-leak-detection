@@ -60,24 +60,45 @@ Each alert includes:
 ---
 
 ## 🔍 Demonstration: Finding a Planted Token
-
-To demonstrate the scanner’s capabilities, a token from `inventory.json` was intentionally planted in a simulated source file.
+- To demonstrate the scanner’s capabilities, all tokens from inventory.json were planted across a diverse set of files in the `/source_files` directory, simulating multiple projects and authors.
 
 ### The Inventory
-`inventory.json` lists an AWS Access Key ID: AKIAJVW6QEXAMPLE7FHFQ belonging to **shashwatbhargava2@gmail.com**
 
-### The Public Leak
-This exact token was added to `source_files/app1/app.py`
+`inventory.json` lists three tokens (AWS, GitHub, GCP) belonging to shashwatbhargava2@gmail.com.
 
-### The Metadata
-Simulated  metadata stored in `source_files/app1/metadata.json` with an `authorIP` of **8.8.8.8**
+### The Public Leaks
+
+These tokens were planted in various files, including:
+
+`source_files/app1/app.py`
+
+  - Token: AKIAJVW6QEXAMPLE7FHFQ (AWS)
+
+  - Author: abcd
+
+  - IP: 8.8.8.8 (Simulates Google DNS)
+
+`source_files/my-todo/todo.txt`
+
+  - Token: ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890 (GitHub)
+
+  - Author: charlie-intern
+
+  - IP: 104.18.21.108 (Simulates a different user)
+
+`source_files/service/service.yaml`
+
+  - Token: E2C4F43C867C924D2FA9EE73468F8 (GCP)
+
+  - Author: Charlie Root
+
+  - IP: 104.18.21.107
+
+(...and several other leaks in .java, .tf, etc.)
 
 ### The Scan
-When triggered:
-1. The system finds the token.
-2. Reads the commit metadata.
-3. Enriches IP info (→ *Mountain View, California, USA*).
-4. Sends detailed alerts.
+
+- When triggered, the service scans all projects, finds all leaks, reads their file-specific metadata, enriches each one with its unique geolocation, and sends a comprehensive report.
 
 ---
 
