@@ -1,0 +1,6 @@
+INFO:2025-10-31: Service charlie-processor started successfully.
+WARN:2025-10-31: S3 client not initialized. S3Connector.java is returning null.
+INFO:2025-10-31: Received new job. JobID: A-12345
+INFO:2025-10-31: Processing job...
+ERROR:2025-10-31: Failed to connect to database: Connection refused.
+INFO:2025-10-31: Job A-12345 completed with status: FAILED.

@@ -1,0 +1,10 @@
+Project Charlie - TODO List
+Last updated: 2025-10-31
+
+Refactor the S3Connector.java file (key is already in there)
+
+Fix the deployment script - it keeps failing.
+
+Need to test the new CI/CD pipeline. Using my personal token for now to get it working, remember to remove: ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890
+
+Onboard new dev.
