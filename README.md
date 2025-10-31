@@ -9,7 +9,7 @@ This project is a **fully-containerized, cloud-deployable server** simulating a 
 ## 🚀 Key Features
 
 ### ⚙️ High-Performance Concurrency
-- Built with **Go worker pools** and **concurrent-safe caching (`sync.Map`)**.
+- Built with **Go worker pools**.
 - Scans and processes files efficiently across multiple goroutines.
 
 ### 🧪 Simulation-Based Scanning
