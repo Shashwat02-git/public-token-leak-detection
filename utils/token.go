@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -45,7 +46,6 @@ type ProcessResult struct {
 // Creates jobs from files
 func CollectFileJobs(rootDir string) ([]FileJob, error) {
 	var jobs []FileJob
-	metadataCache := make(map[string]Metadata)
 
 	projectFolders, err := os.ReadDir(rootDir)
 	if err != nil {
@@ -71,31 +71,39 @@ func CollectFileJobs(rootDir string) ([]FileJob, error) {
 			return nil, err
 		}
 
-		metadataCache[projectPath] = metadata
-
-		files, err := os.ReadDir(projectPath)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, file := range files {
-			if file.IsDir() || file.Name() == "metadata.json" {
-				continue
+		walkErr := filepath.WalkDir(projectPath, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
 			}
 
-			fullPath := filepath.Join(projectPath, file.Name())
-			content, err := os.ReadFile(fullPath)
-			if err != nil {
-				log.Printf("Warning: failed to read file %s. Error: %v", fullPath, err)
-				continue
+			if d.IsDir() {
+				return nil
+			}
+
+			if d.Name() == "metadata.json" {
+				return nil
+			}
+
+			// Read the file content
+			content, readErr := os.ReadFile(path)
+			if readErr != nil {
+				log.Printf("Warning: failed to read file %s. Error: %v", path, readErr)
+				return nil
 			}
 
 			jobs = append(jobs, FileJob{
-				Path:     fullPath,
+				Path:     path,
 				Content:  content,
 				Metadata: metadata,
 			})
+
+			return nil
+		})
+
+		if walkErr != nil {
+			return nil, walkErr
 		}
+
 	}
 
 	return jobs, nil
