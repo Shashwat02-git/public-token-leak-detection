@@ -64,7 +64,7 @@ Each alert includes:
 
 ### The Inventory
 
-`inventory.json` lists three tokens (AWS, GitHub, GCP) belonging to shashwatbhargava2@gmail.com.
+`inventory.json` lists three tokens (AWS, GitHub, GCP) belonging to shashwatbhargava1@gmail.com.
 
 ### The Public Leaks
 
