@@ -9,8 +9,8 @@
     {
         "provider": "github",
         "token_type": "GitHub Personal Access Token",
-        "token_value": "ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890",
-        "owner": "shashwatbhargava1@gmail.com",
+        "token_value": "ghp_A1bC2dE3fH4iJ5kL6mN7oP8qR9sT0uV1wX2yZ3aB4c",
+        "owner": "cyberkartik@gmail.com",
         "remediation": "Go to GitHub -> Settings -> Developer settings -> Personal access tokens. Find this token and revoke it immediately."
     },
     {

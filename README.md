@@ -166,6 +166,7 @@ cp .env.sample .env
 SENDER="your-gmail-address@gmail.com"
 PASSWORD="your-google-app-password"
 SLACK_WEBHOOK_URL="https://hooks.slack.com/services/..."
+PORT = 3000
 ```
 
 - Run the application:
@@ -175,12 +176,12 @@ go run .
 
 The server starts at:
 ```
-http://localhost:8080
+http://localhost:3000
 ```
 
 - Trigger a scan:
 ```
-http://localhost:8080/api/check
+http://localhost:3000/api/check
 ```
 
 ### 🐳 Running with Docker
@@ -197,7 +198,7 @@ docker run --env-file .env -p 3000:3000 token-scanner
 
 - Access the server:
 ```
-http://localhost:8080
+http://localhost:3000
 ```
 
 
