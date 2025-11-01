@@ -41,10 +41,10 @@ func runFullScan(w http.ResponseWriter) {
 		log.Fatalf("Failed to decode inventory file: %v", err)
 	}
 
-	dirPath := "./source_files"
+	// dirPath := "./source_files"
 
 	// Check for token leaks in each file
-	leaks, err := utils.CheckForTokenLeaks(dirPath, tokens)
+	leaks, err := utils.SearchTokensOnGithub(tokens)
 	if err != nil {
 		log.Fatal(err)
 	}

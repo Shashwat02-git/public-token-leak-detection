@@ -3,12 +3,18 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/fs"
 	"log"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
+
+	"github.com/joho/godotenv"
 )
 
 type Token struct {
@@ -20,13 +26,14 @@ type Token struct {
 }
 
 type Metadata struct {
-	Author   string `json:"author"`
-	Domain   string `json:"domain"`
-	AuthorIP string `json:"authorIP"`
+	Author      string `json:"author"`
+	Domain      string `json:"domain"`
+	AuthorEmail string `json:"authorIP"`
 }
 
 type Leak struct {
 	Path     string
+	FilePath string // Add this line if not present
 	Token    Token
 	Metadata Metadata
 	Location string
@@ -194,7 +201,7 @@ func FileProcessingWorker(jobs <-chan FileJob, results chan<- ProcessResult, tok
 
 		//GeoLocation enrichment from cache
 		for _, token := range tokenMatches {
-			location := getCachedLocation(job.Metadata.AuthorIP, geoCache)
+			location := getCachedLocation(job.Metadata.AuthorEmail, geoCache)
 			newLeak := Leak{
 				Path:     job.Path,
 				Token:    token,
@@ -214,7 +221,7 @@ func getCachedLocation(ip string, cache *sync.Map) string {
 		return cached.(string)
 	}
 
-	location, err := GetGeoLocationFromIP(ip)
+	location, err := GetGeoLocationFromIPs([]string{ip})
 	if err != nil || location == "" {
 		location = "Location not available"
 	}
@@ -268,4 +275,115 @@ func CheckForTokenLeaks(rootDir string, tokens []Token) ([]Leak, error) {
 	}
 
 	return allLeaks, nil
+}
+
+func SearchTokensOnGithub(tokens []Token) ([]Leak, error) {
+	_ = godotenv.Load()
+	githubToken := os.Getenv("GITHUB_TOKEN")
+	if githubToken == "" {
+		return nil, fmt.Errorf("GITHUB_TOKEN environment variable not set")
+	}
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	var leaks []Leak
+
+	for _, token := range tokens {
+		if token.TokenValue == "" {
+			continue
+		}
+
+		// Build search URL
+		reqURL := &url.URL{
+			Scheme: "https",
+			Host:   "api.github.com",
+			Path:   "/search/code",
+		}
+
+		// Add query parameters
+		q := reqURL.Query()
+		q.Add("q", fmt.Sprintf("\"%s\"", token.TokenValue))
+		reqURL.RawQuery = q.Encode()
+
+		// Create request
+		req, _ := http.NewRequest("GET", reqURL.String(), nil)
+		req.Header.Set("Accept", "application/vnd.github+json")
+		req.Header.Set("Authorization", "token "+githubToken)
+
+		// Execute request
+		resp, err := client.Do(req)
+		if err != nil {
+			continue
+		}
+
+		// Parse response
+		var result struct {
+			Items []struct {
+				HTMLURL string `json:"html_url"`
+				Path    string `json:"path"`
+				Repo    struct {
+					FullName string `json:"full_name"`
+					HTMLURL  string `json:"html_url"`
+				} `json:"repository"`
+			} `json:"items"`
+		}
+
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			resp.Body.Close()
+			continue
+		}
+		resp.Body.Close()
+
+		// Process results
+		for _, item := range result.Items {
+			// Extract owner and repo from full name
+			repoParts := strings.Split(item.Repo.FullName, "/")
+			if len(repoParts) != 2 {
+				continue
+			}
+			owner, repo := repoParts[0], repoParts[1]
+
+			// Get commit details for author info
+			var authorName, authorEmail, location string
+			commit, err := getCommitDetails(client, owner, repo, item.Path, githubToken)
+			if err == nil {
+				authorName = commit.Commit.Author.Name
+				authorEmail = commit.Commit.Author.Email
+
+				// Get location from author's email domain if available
+				if authorEmail != "" {
+					emailParts := strings.Split(authorEmail, "@")
+					if len(emailParts) == 2 {
+						domain := emailParts[1]
+						if ips, err := GetIPFromDomain(domain); err == nil {
+							if loc, err := GetGeoLocationFromIPs(ips); err == nil {
+								location = loc
+							}
+						}
+					}
+				}
+			}
+
+			// Create file URL by combining repo URL and file path
+			fileURL := fmt.Sprintf("%s/blob/HEAD/%s", strings.TrimSuffix(item.Repo.HTMLURL, ".git"), item.Path)
+
+			leaks = append(leaks, Leak{
+				Path:     fileURL,   // Direct URL to the file
+				FilePath: item.Path, // Just the file path
+				Token:    token,
+				Metadata: Metadata{
+					Domain:      "github.com",
+					Author:      authorName,
+					AuthorEmail: authorEmail,
+				},
+				Location: location,
+			})
+
+			fmt.Printf("Found potential leak in %s by %s <%s> [%s]\n",
+				fileURL, authorName, authorEmail, location)
+		}
+
+		time.Sleep(2 * time.Second) // Rate limiting
+	}
+
+	return leaks, nil
 }
