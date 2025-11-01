@@ -73,7 +73,9 @@ func runFullScan(w http.ResponseWriter) {
 	// Send notification to slack
 	wg.Add(1)
 	go func(l []utils.Leak) {
-		utils.SendSlackNotification(l)
+		if err := utils.SendSlackNotification(l); err != nil {
+			log.Printf("ERROR sending Slack notification: %v", err)
+		}
 		defer wg.Done()
 	}(leaks)
 

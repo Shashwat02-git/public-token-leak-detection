@@ -42,7 +42,7 @@ func SendSlackNotification(leaks []Leak) error {
 		return fmt.Errorf("SLACK_WEBHOOK_URL environment variable not set")
 	}
 
-	const maxBlocks = 40 // Leave room for headers and footers
+	const maxBlocks = 10
 	var allErrors []string
 
 	for i := 0; i < len(leaks); i += maxBlocks {
@@ -56,8 +56,8 @@ func SendSlackNotification(leaks []Leak) error {
 
 		message.Blocks = append(message.Blocks,
 			Block{
-				Type: "header",
-				Text: &TextObject{Type: "plain_text", Text: "Token Leak Report"},
+				Type: "section",
+				Text: &TextObject{Type: "mrkdwn", Text: "*🛡️ Token Leak Report*"},
 			},
 			Block{
 				Type: "section",

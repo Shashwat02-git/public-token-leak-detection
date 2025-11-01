@@ -33,7 +33,7 @@ type Metadata struct {
 
 type Leak struct {
 	Path     string
-	FilePath string // Add this line if not present
+	FilePath string
 	Token    Token
 	Metadata Metadata
 	Location string
