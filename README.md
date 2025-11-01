@@ -191,7 +191,7 @@ docker build -t token-scanner .
 
 - Run the docker container:
 ```
-docker run --env-file .env -p 8080:8080 token-scanner
+docker run --env-file .env -p 3000:3000 token-scanner
 
 ```
 

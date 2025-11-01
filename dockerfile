@@ -19,4 +19,6 @@ COPY inventory.json .
 COPY templates/ ./templates/
 COPY source_files/ ./source_files/
 
+EXPOSE 3000
+
 CMD ["./token-scanner"]
