@@ -1,4 +1,21 @@
-[
+import json
+import os
+
+from hvac import Client
+
+# Initialize Vault client
+client = Client(url=os.environ.get("VAULT_ADDR"), token=os.environ.get("VAULT_TOKEN"))
+
+# Fetch the secret from Vault
+vault_secret_path = 'vault://kv//Shashwat02-git/public-token-leak-detection/inventory.json'
+try:
+    read_response = client.secrets.kv.v2.read_secret_version(path=vault_secret_path)
+    github_token = read_response['data']['data']['github_token']
+except Exception as e:
+    print(f"Error fetching secret from Vault: {e}")
+    github_token = None
+
+data = [
     {
         "provider": "aws",
         "token_type": "AWS Access Key ID",
@@ -9,7 +26,7 @@
     {
         "provider": "github",
         "token_type": "GitHub Personal Access Token",
-        "token_value": "ghp_A1bC2dE3fH4iJ5kL6mN7oP8qR9sT0uV1wX2yZ3aB4c",
+        "token_value": github_token,
         "owner": "cyberkartik@gmail.com",
         "remediation": "Go to GitHub -> Settings -> Developer settings -> Personal access tokens. Find this token and revoke it immediately."
     },
@@ -21,3 +38,7 @@
         "remediation": "Go to the GCP Console -> IAM & Admin -> Service Accounts. Find the service account, go to the 'Keys' tab, find the leaked Key ID, and delete it. Generate a new key and store it securely."
     }
 ]
+
+# In a real application, you would likely use this data for further processing
+# For demonstration purposes, we'll just print it.
+# print(json.dumps(data, indent=4))
