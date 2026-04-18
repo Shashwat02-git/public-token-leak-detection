@@ -4,7 +4,8 @@
         "token_type": "AWS Access Key ID",
         "token_value": "AKIAJVW6QEXAMPLE7FHFQ",
         "owner": "shashwatbhargava1@gmail.com",
-        "remediation": "Go to the AWS IAM console, find the user associated with this key, and click 'Make inactive' or 'Delete'. Then, generate a new key."
+        "remediation": "Go to the AWS IAM console, find the user associated with this key, and click 'Make inactive' or 'Delete'. Then, generate a new key.",
+        "comment": "ci gating test"
     },
     {
         "provider": "github",
@@ -21,3 +22,4 @@
         "remediation": "Go to the GCP Console -> IAM & Admin -> Service Accounts. Find the service account, go to the 'Keys' tab, find the leaked Key ID, and delete it. Generate a new key and store it securely."
     }
 ]
+
