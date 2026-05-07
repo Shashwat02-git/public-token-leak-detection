@@ -5,7 +5,7 @@
         "token_value": "AKIAJVW6QEXAMPLE7FHFQ",
         "owner": "shashwatbhargava1@gmail.com",
         "remediation": "Go to the AWS IAM console, find the user associated with this key, and click 'Make inactive' or 'Delete'. Then, generate a new key.",
-        "comment": "ci gating test 23"
+        "comment": "ci gating test 24"
     },
     {
         "provider": "github",
