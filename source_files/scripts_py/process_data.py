@@ -22,3 +22,6 @@ def process_data(df):
 if __name__ == "__main__":
     data = load_data("data/input.csv")
     process_data(data)
+
+
+key = "AKIA2UC3FVYLKVQKFWUH"
