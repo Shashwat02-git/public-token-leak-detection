@@ -20,6 +20,9 @@
         "token_value": "PMAK-68bd8f7174540600019e9f52-1d2a9e9094f89889a4730d700d6cc32089",
         "owner": "shashwatbhargava1@gmail.com",
         "remediation": "Go to the GCP Console -> IAM & Admin -> Service Accounts. Find the service account, go to the 'Keys' tab, find the leaked Key ID, and delete it. Generate a new key and store it securely."
+    },
+    {
+        "lol": "AKIA2UC3FVYLKVQKFWUH"
     }
 ]
 
